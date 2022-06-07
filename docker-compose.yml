@@ -2,9 +2,15 @@ version: "3.9"
 
 services:
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: fastapi_api
     restart: always
+    env_file:
+      - "./.env"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgres://user:password:5432/fastapi_db}
     command: "uvicorn api.main:api --reload --workers 1 --host 0.0.0.0 --port 8000"
     ports:
       - "8000:8000"
@@ -12,7 +18,32 @@ services:
       - .:/api
     networks:
       - fastapi-network
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:14-alpine
+    restart: always
+    env_file:
+      - "./.env"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_DB=${POSTGRES_DB:-fastapi_db}
+    volumes:
+      - "./data/postgres:/var/lib/postgresql/data/:rw"
+    expose:
+      - "5432"
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
 
 networks:
   fastapi-network:
     driver: bridge
+
+volumes:
+  data:
