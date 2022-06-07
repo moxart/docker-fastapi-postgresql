@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    container_name: fastapi_api
+    restart: always
+    command: "uvicorn api.main:api --reload --workers 1 --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/api
+    networks:
+      - fastapi-network
+
+networks:
+  fastapi-network:
+    driver: bridge
